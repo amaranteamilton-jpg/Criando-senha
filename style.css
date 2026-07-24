@@ -1,92 +1,145 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono&display=swap');
+// Caracteres disponíveis
+const MAIUSCULAS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const MINUSCULAS = "abcdefghijklmnopqrstuvwxyz";
+const NUMEROS = "0123456789";
+const SIMBOLOS = "!@#$%^&*()_+-=[]{}|;:,.<>?";
 
-:root{
-    --branco: white;
-    --cor-de-fundo: #00162E;
-    --fundo-senha: #00244D;
-    --fundo-texto: #001E40;
-    --borda: #0075FF;
-    --roboto: 'Roboto', sans-serif;
-    --roboto-mono: 'Roboto Mono', monospace;
-}
+// Elementos do DOM
+const campoSenha = document.getElementById("campo-senha");
+const textoTamanho = document.getElementById("texto-tamanho");
+const botaoDiminuir = document.getElementById("botao-diminuir");
+const botaoAumentar = document.getElementById("botao-aumentar");
+const botaoCopiar = document.getElementById("botao-copiar");
+const barraForca = document.getElementById("barra-forca");
+const textoForca = document.getElementById("texto-forca");
 
-*{
-    font-weight: 400;
-}
+const checkboxMaiusculo = document.getElementById("maiusculo");
+const checkboxMinusculo = document.getElementById("minusculo");
+const checkboxNumero = document.getElementById("numero");
+const checkboxSimbolo = document.getElementById("simbolo");
 
-body{
-    color: var(--branco);
-    background-color: var(--cor-de-fundo);
-    font-family: var(--roboto);
-}
+// Estado
+let tamanhoSenha = 12;
+const TAMANHO_MIN = 4;
+const TAMANHO_MAX = 32;
 
-.titulo-principal{
-    font-family: var(--roboto-mono);
-    font-size: 32px;
-}
+// Gera a senha
+function gerarSenha() {
+    let caracteres = "";
 
-.titulo-secundario{
-    font-size: 24px;
-}
+    if (checkboxMaiusculo.checked) caracteres += MAIUSCULAS;
+    if (checkboxMinusculo.checked) caracteres += MINUSCULAS;
+    if (checkboxNumero.checked) caracteres += NUMEROS;
+    if (checkboxSimbolo.checked) caracteres += SIMBOLOS;
 
-.conteudo-titulo{
-    text-align: center;
-    margin-top: 80px;
-}
-
-.conteudo-senha{
-    margin-top: 80px; 
-    background: var(--fundo-senha);
-    padding: 24px;
-    border-bottom: 6px solid var(--borda);
-}
-
-#campo-senha{
-    background-color: var(--fundo-senha);
-    border: none;
-    color: var(--branco);
-    font-family: var(--roboto-mono);
-    font-size: 40px;
-    width: 70%;
-}
-
-#campo-senha:focus{
-    outline: none;
-}
-
-.conteudo{
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.parametro{
-    background-color: var(--fundo-texto);
-    border: 2px solid var(--borda);
-    margin-top: 32px;
-    padding: 24px;
-}
-
-.parametro-titulo{
-    font-family: var(--roboto-mono);
-    font-size: 28px;
-}
-
-.parametro-senha__titulo{
-    font-size:24px;
-}
-
-.parametro-coluna__senha{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-.parametro-senha{
-    width: 50%;
-    margin: 0 auto;
-}
-
-@media screen and (min-width: 768px) {
-    .parametro-coluna__senha{
-        flex-direction: row;
+    // Se nenhuma opção estiver marcada, usa apenas minúsculas
+    if (caracteres === "") {
+        caracteres = MINUSCULAS;
     }
+
+    let senha = "";
+    for (let i = 0; i < tamanhoSenha; i++) {
+        const indice = Math.floor(Math.random() * caracteres.length);
+        senha += caracteres[indice];
+    }
+
+    campoSenha.value = senha;
+    atualizarForca();
 }
+
+// Calcula e atualiza a força da senha
+function atualizarForca() {
+    let pontos = 0;
+
+    // Pontos por tipos de caracteres selecionados
+    if (checkboxMaiusculo.checked) pontos += 1;
+    if (checkboxMinusculo.checked) pontos += 1;
+    if (checkboxNumero.checked) pontos += 1;
+    if (checkboxSimbolo.checked) pontos += 1;
+
+    // Pontos extras pelo tamanho
+    if (tamanhoSenha >= 12) pontos += 1;
+    if (tamanhoSenha >= 16) pontos += 1;
+
+    // Define nível e estilo
+    let nivel = "Fraca";
+    let cor = "var(--fraca)";
+    let largura = "33%";
+
+    if (pontos <= 2) {
+        nivel = "Fraca";
+        cor = "var(--fraca)";
+        largura = "33%";
+    } else if (pontos <= 4) {
+        nivel = "Média";
+        cor = "var(--media)";
+        largura = "66%";
+    } else {
+        nivel = "Forte";
+        cor = "var(--forte)";
+        largura = "100%";
+    }
+
+    // Caso especial: senha muito curta
+    if (tamanhoSenha < 8) {
+        nivel = "Fraca";
+        cor = "var(--fraca)";
+        largura = "33%";
+    }
+
+    barraForca.style.width = largura;
+    barraForca.style.backgroundColor = cor;
+    textoForca.textContent = nivel;
+    textoForca.style.color = cor;
+}
+
+// Eventos dos botões de tamanho
+botaoDiminuir.addEventListener("click", () => {
+    if (tamanhoSenha > TAMANHO_MIN) {
+        tamanhoSenha--;
+        textoTamanho.textContent = tamanhoSenha;
+        gerarSenha();
+    }
+});
+
+botaoAumentar.addEventListener("click", () => {
+    if (tamanhoSenha < TAMANHO_MAX) {
+        tamanhoSenha++;
+        textoTamanho.textContent = tamanhoSenha;
+        gerarSenha();
+    }
+});
+
+// Eventos dos checkboxes
+[checkboxMaiusculo, checkboxMinusculo, checkboxNumero, checkboxSimbolo].forEach(checkbox => {
+    checkbox.addEventListener("change", gerarSenha);
+});
+
+// Botão copiar
+botaoCopiar.addEventListener("click", async () => {
+    const senha = campoSenha.value;
+    if (!senha) return;
+
+    try {
+        await navigator.clipboard.writeText(senha);
+        const textoOriginal = botaoCopiar.textContent;
+        botaoCopiar.textContent = "Copiado!";
+        botaoCopiar.style.backgroundColor = "#00c853";
+
+        setTimeout(() => {
+            botaoCopiar.textContent = textoOriginal;
+            botaoCopiar.style.backgroundColor = "";
+        }, 1500);
+    } catch (err) {
+        // Fallback antigo
+        campoSenha.select();
+        document.execCommand("copy");
+        botaoCopiar.textContent = "Copiado!";
+        setTimeout(() => {
+            botaoCopiar.textContent = "Copiar";
+        }, 1500);
+    }
+});
+
+// Gera a senha inicial ao carregar a página
+gerarSenha();
